@@ -180,4 +180,77 @@ public class MovieManagementSystem {
             System.exit(1);
         }
     }
+
+    static void getMovieInfo() {
+        System.out.print("Enter movie ID or title: ");
+        String input = sc.nextLine();
+
+        movies.stream()
+                .filter(m -> String.valueOf(m.id).equals(input) || m.title.equalsIgnoreCase(input))
+                .findFirst()
+                .ifPresentOrElse(
+                        m -> {
+                            System.out.println("\nMovie Details:");
+                            System.out.println("Title: " + m.title);
+                            System.out.println("Year: " + m.year);
+                            System.out.println("Genre: " + m.genre);
+                            System.out.println("Rating: " + m.rating);
+                            System.out.println("Duration: " + m.duration + " minutes");
+                            System.out.println("Director: " + m.director.name);
+                            System.out.println("Actors: " +
+                                    m.actors.stream()
+                                            .map(a -> a.name)
+                                            .reduce((a, b) -> a + ", " + b)
+                                            .orElse("No actors listed")
+                            );
+                        },
+                        () -> System.out.println("Movie not found!")
+                );
+    }
+
+    static void getTopRatedMovies() {
+        movies.stream()
+                .sorted((a, b) -> Double.compare(b.rating, a.rating))
+                .limit(10)
+                .forEach(m -> System.out.println(m.title + " - Rating: " + m.rating));
+    }
+
+    static void getMoviesByGenre() {
+        System.out.print("Enter genre: ");
+        String genre = sc.nextLine();
+
+        movies.stream()
+                .filter(m -> m.genre.equalsIgnoreCase(genre))
+                .forEach(m -> System.out.println(m.title + " (" + m.year + ")"));
+    }
+
+    static void getMoviesByDirector() {
+        System.out.print("Enter director name: ");
+        String name = sc.nextLine();
+
+        movies.stream()
+                .filter(m -> m.director.name.equalsIgnoreCase(name))
+                .forEach(m -> System.out.println(m.title + " (" + m.year + ")"));
+    }
+
+    static void getMoviesByYear() {
+        System.out.print("Enter year: ");
+        int year = sc.nextInt();
+
+        movies.stream()
+                .filter(m -> m.year == year)
+                .forEach(m -> System.out.println(m.title + " - " + m.genre));
+    }
+
+    static void getMoviesByYearRange() {
+        System.out.print("Enter start year: ");
+        int start = sc.nextInt();
+        System.out.print("Enter end year: ");
+        int end = sc.nextInt();
+
+        movies.stream()
+                .filter(m -> m.year >= start && m.year <= end)
+                .forEach(m -> System.out.println(m.title + " (" + m.year + ")"));
+    }
+
 }
