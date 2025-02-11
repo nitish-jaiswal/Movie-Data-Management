@@ -253,4 +253,142 @@ public class MovieManagementSystem {
                 .forEach(m -> System.out.println(m.title + " (" + m.year + ")"));
     }
 
+    static void addNewMovie() {
+        try {
+            System.out.println("Enter movie details:");
+            System.out.print("ID: ");
+            int id = sc.nextInt();
+            sc.nextLine();
+
+            System.out.print("Title: ");
+            String title = sc.nextLine();
+
+            System.out.print("Year: ");
+            int year = sc.nextInt();
+            sc.nextLine();
+
+            System.out.print("Genre: ");
+            String genre = sc.nextLine();
+
+            System.out.print("Rating: ");
+            double rating = sc.nextDouble();
+
+            System.out.print("Duration (minutes): ");
+            int duration = sc.nextInt();
+
+            System.out.print("Director ID: ");
+            int dirId = sc.nextInt();
+
+            Director director = directors.stream()
+                    .filter(d -> d.id == dirId)
+                    .findFirst()
+                    .orElseThrow(() -> new Exception("Director not found"));
+
+            List<Actor> movieActors = new ArrayList<>();
+            System.out.print("Enter actor IDs (comma-separated): ");
+            sc.nextLine();
+            String[] actorIds = sc.nextLine().split(",");
+
+            for (String actorId : actorIds) {
+                int aid = Integer.parseInt(actorId.trim());
+                actors.stream()
+                        .filter(a -> a.id == aid)
+                        .findFirst()
+                        .ifPresent(movieActors::add);
+            }
+
+            movies.add(new Movie(id, title, year, genre, rating, duration, director, movieActors));
+            System.out.println("Movie added successfully!");
+
+        } catch (Exception e) {
+            System.out.println("Error adding movie: " + e.getMessage());
+        }
+    }
+
+    static void updateMovieRating() {
+        System.out.print("Enter movie ID: ");
+        int id = sc.nextInt();
+        System.out.print("Enter new rating: ");
+        double rating = sc.nextDouble();
+
+        movies.stream()
+                .filter(m -> m.id == id)
+                .findFirst()
+                .ifPresentOrElse(
+                        m -> {
+                            m.rating = rating;
+                            System.out.println("Rating updated successfully!");
+                        },
+                        () -> System.out.println("Movie not found!")
+                );
+    }
+
+    static void deleteMovie() {
+        System.out.print("Enter movie ID: ");
+        int id = sc.nextInt();
+
+        if (movies.removeIf(m -> m.id == id)) {
+            System.out.println("Movie deleted successfully!");
+        } else {
+            System.out.println("Movie not found!");
+        }
+    }
+
+    static void getSortedMoviesByYear() {
+        movies.stream()
+                .sorted((a, b) -> Integer.compare(a.year, b.year))
+                .limit(15)
+                .forEach(m -> System.out.println(m.title + " (" + m.year + ")"));
+    }
+
+    static void getTopDirectors() {
+        Map<Director, Integer> directorCount = new HashMap<>();
+
+        for (Movie m : movies) {
+            directorCount.put(m.director, directorCount.getOrDefault(m.director, 0) + 1);
+        }
+
+        directorCount.entrySet().stream()
+                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                .limit(5)
+                .forEach(e -> System.out.println(e.getKey().name + " - Movies: " + e.getValue()));
+    }
+
+    static void getMostActiveActor() {
+        Map<Actor, Integer> actorCount = new HashMap<>();
+
+        for (Movie m : movies) {
+            for (Actor a : m.actors) {
+                actorCount.put(a, actorCount.getOrDefault(a, 0) + 1);
+            }
+        }
+
+        actorCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .ifPresent(e -> {
+                    Actor a = e.getKey();
+                    System.out.println("Most active actor: " + a.name);
+                    System.out.println("Movies acted in: " + e.getValue());
+                    System.out.println("Nationality: " + a.nationality);
+                    System.out.println("Date of Birth: " + a.dob);
+                });
+    }
+
+    static void getYoungestActorMovies() {
+        LocalDate asOf = LocalDate.of(2025, 2, 10);
+
+        Actor youngest = actors.stream()
+                .min(Comparator.comparing(a -> a.getAge(asOf)))
+                .orElse(null);
+
+        if (youngest != null) {
+            System.out.println("Youngest actor: " + youngest.name);
+            System.out.println("Age as of " + asOf + ": " + youngest.getAge(asOf));
+            System.out.println("\nMovies:");
+
+            movies.stream()
+                    .filter(m -> m.actors.contains(youngest))
+                    .forEach(m -> System.out.println(m.title + " (" + m.year + ")"));
+        }
+    }
 }
